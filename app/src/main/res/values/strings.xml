@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">ContactTracingApp</string>
+    <string name="app_name">Contact Tracing</string>
     <string name="start_button_text">Start Service</string>
+    <string name="required_permission">Need access to location</string>
     <string name="stop_button_text">Stop Service</string>
+    <string name="notification_title">Title</string>
+    <string name="notification_text">Text</string>
 </resources>
