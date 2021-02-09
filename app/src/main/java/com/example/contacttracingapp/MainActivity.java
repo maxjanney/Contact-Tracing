@@ -9,11 +9,11 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
-    DashboardFragment dashboardFragment;
     Intent tracingIntent;
 
     @Override
@@ -24,14 +24,10 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         tracingIntent = new Intent(this, TracingService.class);
 
         FragmentManager fm = getSupportFragmentManager();
-        Fragment tempFrag;
-
-        if ((tempFrag = fm.findFragmentById(R.id.dashboard_fragment)) instanceof DashboardFragment) {
-            dashboardFragment = (DashboardFragment) tempFrag;
-        } else {
-            dashboardFragment = new DashboardFragment();
+        if (!(fm.findFragmentById(R.id.dashboard_fragment) instanceof DashboardFragment)) {
+            Log.d("this is a tag", "adding frag");
             fm.beginTransaction()
-                    .add(R.id.dashboard_fragment, dashboardFragment)
+                    .add(R.id.dashboard_fragment, new DashboardFragment())
                     .commit();
         }
 
