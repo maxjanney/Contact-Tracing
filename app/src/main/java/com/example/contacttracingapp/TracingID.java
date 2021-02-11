@@ -1,10 +1,10 @@
 package com.example.contacttracingapp;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class TracingID {
-
+public class TracingID implements Serializable {
     // date id was generated
     private final LocalDate date;
 
