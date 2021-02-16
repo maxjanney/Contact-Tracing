@@ -1,4 +1,4 @@
-package com.example.contacttracingapp;
+package com.example.contacttracingapp.Tracing;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -22,5 +22,13 @@ public class TracingID implements Serializable {
 
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "TracingID{" +
+                "date=" + date +
+                ", id=" + id +
+                '}';
     }
 }

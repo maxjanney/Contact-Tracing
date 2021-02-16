@@ -1,4 +1,4 @@
-package com.example.contacttracingapp;
+package com.example.contacttracingapp.Tracing;
 
 import android.content.Context;
 

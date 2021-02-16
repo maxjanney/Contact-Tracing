@@ -4,11 +4,15 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
+
+import com.example.contacttracingapp.Tracing.TracingID;
+import com.example.contacttracingapp.Tracing.TracingIDList;
 
 import java.time.LocalDate;
 
@@ -64,5 +68,6 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         if (currentID == null || today.isAfter(currentID.getDate())) {
             tracingIDList.generateID(today, this);
         }
+        Log.d("MainActivity", tracingIDList.getIds().toString());
     }
 }
