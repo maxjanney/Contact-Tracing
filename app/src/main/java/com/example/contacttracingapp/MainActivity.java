@@ -1,19 +1,20 @@
 package com.example.contacttracingapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+
+import java.time.LocalDate;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
+    TracingIDList tracingIDList;
     Intent tracingIntent;
 
     @Override
@@ -21,11 +22,13 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        tracingIDList = TracingIDList.getInstance(this);
         tracingIntent = new Intent(this, TracingService.class);
+
+        generateDailyID();
 
         FragmentManager fm = getSupportFragmentManager();
         if (!(fm.findFragmentById(R.id.dashboard_fragment) instanceof DashboardFragment)) {
-            Log.d("this is a tag", "adding frag");
             fm.beginTransaction()
                     .add(R.id.dashboard_fragment, new DashboardFragment())
                     .commit();
@@ -52,5 +55,14 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
     @Override
     public void stop() {
         stopService(tracingIntent);
+    }
+
+    private void generateDailyID() {
+        LocalDate today = LocalDate.now();
+        TracingID currentID = tracingIDList.getCurrentID();
+        // no previous ID or current ID is expired, so generate a new one
+        if (currentID == null || today.isAfter(currentID.getDate())) {
+            tracingIDList.generateID(today, this);
+        }
     }
 }
