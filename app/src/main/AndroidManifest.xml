@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.contacttracingapp">
+    package="edu.temple.contacttracer">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -13,12 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ContactTracingApp">
         <service
-            android:name=".TracingService"
+            android:name="edu.temple.contacttracer.TracingService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location"/>
 
-        <activity android:name=".MainActivity">
+        <activity android:name="edu.temple.contacttracer.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

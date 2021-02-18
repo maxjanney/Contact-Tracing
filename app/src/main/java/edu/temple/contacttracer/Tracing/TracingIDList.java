@@ -1,4 +1,4 @@
-package com.example.contacttracingapp.Tracing;
+package edu.temple.contacttracer.Tracing;
 
 import android.content.Context;
 
@@ -33,12 +33,12 @@ public class TracingIDList {
         saveIDs(context);
     }
 
-    public TracingID getCurrentID() {
-        return ids.peekFirst();
-    }
-
     public ArrayDeque<TracingID> getIds() {
         return ids;
+    }
+
+    public TracingID getCurrentID() {
+        return ids.peekFirst();
     }
 
     @SuppressWarnings("unchecked")

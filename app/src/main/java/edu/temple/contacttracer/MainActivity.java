@@ -1,4 +1,4 @@
-package com.example.contacttracingapp;
+package edu.temple.contacttracer;
 
 import android.Manifest;
 import android.content.Intent;
@@ -11,12 +11,19 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
-import com.example.contacttracingapp.Tracing.TracingID;
-import com.example.contacttracingapp.Tracing.TracingIDList;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import edu.temple.contacttracer.Tracing.TracingID;
+import edu.temple.contacttracer.Tracing.TracingIDList;
 
 import java.time.LocalDate;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
+
+    static final String TRACING_TOPIC = "TRACKING";
+    static final String TAG = "MainActivity";
 
     TracingIDList tracingIDList;
     Intent tracingIntent;
@@ -26,10 +33,9 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tracingIDList = TracingIDList.getInstance(this);
-        tracingIntent = new Intent(this, TracingService.class);
-
-        generateDailyID();
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 123);
+        }
 
         FragmentManager fm = getSupportFragmentManager();
         if (!(fm.findFragmentById(R.id.dashboard_fragment) instanceof DashboardFragment)) {
@@ -38,9 +44,11 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
                     .commit();
         }
 
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 123);
-        }
+        tracingIDList = TracingIDList.getInstance(this);
+        tracingIntent = new Intent(this, TracingService.class);
+
+        generateDailyID();
+        subscribeToTopic(TRACING_TOPIC);
     }
 
     @Override
@@ -68,6 +76,13 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         if (currentID == null || today.isAfter(currentID.getDate())) {
             tracingIDList.generateID(today, this);
         }
-        Log.d("MainActivity", tracingIDList.getIds().toString());
+    }
+
+    private void subscribeToTopic(String topic) {
+        FirebaseMessaging.getInstance().subscribeToTopic(topic)
+                .addOnCompleteListener(task -> {
+                   String msg = task.isSuccessful() ? "success" : "fail";
+                   Log.d(TAG, msg);
+                });
     }
 }

@@ -1,4 +1,4 @@
-package com.example.contacttracingapp;
+package edu.temple.contacttracer;
 
 import android.Manifest;
 import android.app.Notification;
@@ -11,8 +11,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 public class TracingService extends Service {
 
@@ -35,14 +39,26 @@ public class TracingService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         locationManager = getSystemService(LocationManager.class);
-        locationListener = location -> {
-            if (previousLocation != null) {
-                long elapsedTime = location.getTime() - previousLocation.getTime();
-                if (elapsedTime >= TRANSMISSION_TIME) {
-                    Log.d(DEBUG_TAG, "Longer than 60 seconds.");
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                if (previousLocation != null) {
+                    long elapsedTime = location.getTime() - previousLocation.getTime();
+                    if (elapsedTime >= TRANSMISSION_TIME) {
+                        Log.d(DEBUG_TAG, "Longer than 60 seconds.");
+                    }
                 }
+                previousLocation = location;
             }
-            previousLocation = location;
+
+            @Override
+            public void onProviderEnabled(@NonNull String provider) { }
+
+            @Override
+            public void onProviderDisabled(@NonNull String provider) { }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
         };
 
         createNotificationChannel();

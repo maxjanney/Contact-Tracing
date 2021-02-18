@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "560332477195",
+    "project_id": "contacttracingapp-b3066",
+    "storage_bucket": "contacttracingapp-b3066.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:560332477195:android:e5e9eed194c2f1944e880e",
+        "android_client_info": {
+          "package_name": "edu.temple.contacttracer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "560332477195-2h85huc81ms44bbla429veb2vpvjb5gp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBlPnTX0dXHzdxeoA9-IjuHtls3JluBVY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "560332477195-2h85huc81ms44bbla429veb2vpvjb5gp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

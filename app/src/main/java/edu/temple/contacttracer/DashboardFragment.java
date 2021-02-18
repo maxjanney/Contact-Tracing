@@ -1,4 +1,4 @@
-package com.example.contacttracingapp;
+package edu.temple.contacttracer;
 
 import android.content.Context;
 import android.os.Bundle;

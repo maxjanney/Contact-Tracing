@@ -1,4 +1,4 @@
-package com.example.contacttracingapp.Tracing;
+package edu.temple.contacttracer.Tracing;
 
 import java.io.Serializable;
 import java.time.LocalDate;
