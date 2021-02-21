@@ -11,8 +11,7 @@ public class SedentaryEvent {
     private final double longitude;
     private final long sedentary_begin;
     private final long sedentary_end;
-    private final Location location;
-    private final LocalDate date;
+    private Location location;
 
     public SedentaryEvent(String uuid, double latitude, double longitude,
                           long sedentary_begin, long sedentary_end) {
@@ -21,10 +20,6 @@ public class SedentaryEvent {
         this.longitude = longitude;
         this.sedentary_begin = sedentary_begin;
         this.sedentary_end = sedentary_end;
-        location = new Location("");
-        location.setLongitude(this.latitude);
-        location.setLongitude(this.longitude);
-        date = LocalDate.now();
     }
 
     public String getUUID() {
@@ -48,17 +43,27 @@ public class SedentaryEvent {
     }
 
     public Location getLocation() {
+        if (location == null) {
+            setLocation();
+        }
         return location;
+    }
+
+    private void setLocation() {
+        location = new Location("");
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
     }
 
     @Override
     public String toString() {
-        return "TrackingMessage{" +
+        return "SedentaryEvent{" +
                 "uuid='" + uuid + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
-                ", sedentaryStart=" + sedentary_begin +
-                ", sedentaryStop=" + sedentary_end +
+                ", sedentary_begin=" + sedentary_begin +
+                ", sedentary_end=" + sedentary_end +
+                ", location=" + location +
                 '}';
     }
 }
