@@ -20,7 +20,7 @@ public class TracingID implements Serializable {
         return date;
     }
 
-    public UUID getId() {
+    public UUID getUUID() {
         return id;
     }
 

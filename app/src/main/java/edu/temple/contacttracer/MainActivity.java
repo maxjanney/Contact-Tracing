@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingService;
 
 import edu.temple.contacttracer.Tracing.TracingID;
 import edu.temple.contacttracer.Tracing.TracingIDList;
@@ -76,13 +77,16 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         if (currentID == null || today.isAfter(currentID.getDate())) {
             tracingIDList.generateID(today, this);
         }
+        Log.d(TAG, tracingIDList.getIds().toString());
     }
 
     private void subscribeToTopic(String topic) {
         FirebaseMessaging.getInstance().subscribeToTopic(topic)
-                .addOnCompleteListener(task -> {
-                   String msg = task.isSuccessful() ? "success" : "fail";
-                   Log.d(TAG, msg);
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Log.d(TAG, task.isSuccessful() ? "success" : "fail");
+                    }
                 });
     }
 }
