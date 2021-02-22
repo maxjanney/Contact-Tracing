@@ -11,6 +11,7 @@ public class SedentaryEvent {
     private final double longitude;
     private final long sedentary_begin;
     private final long sedentary_end;
+    private LocalDate date;
     private Location location;
 
     public SedentaryEvent(String uuid, double latitude, double longitude,
@@ -42,11 +43,19 @@ public class SedentaryEvent {
         return sedentary_end;
     }
 
+    public LocalDate getDate() {
+        return date;
+    }
+
     public Location getLocation() {
         if (location == null) {
             setLocation();
         }
         return location;
+    }
+
+    public void setDate() {
+        date = LocalDate.now();
     }
 
     private void setLocation() {
