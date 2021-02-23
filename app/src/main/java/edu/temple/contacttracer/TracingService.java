@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -24,12 +25,18 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
+import java.util.ArrayDeque;
+import java.util.Date;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.temple.contacttracer.Tracing.TracingIDList;
 import edu.temple.contacttracer.Tracing.SedentaryEvent;
+import edu.temple.contacttracer.Tracing.TracingIDList;
 
 public class TracingService extends Service {
 
@@ -37,12 +44,15 @@ public class TracingService extends Service {
     static final String CHANNEL_NAME = "tracing_service_channel";
     static final String TAG = "TracingService";
 
-    static final long SEDENTARY_TIME = 60 * 1000;   // 60 seconds
+    static final long SEDENTARY_TIME = 10 * 1000;   // 60 seconds
     static final long UPDATE_DISTANCE = 10;         // location updates every 10 meters
 
     LocationManager locationManager;
     LocationListener locationListener;
     Location previousLocation;
+
+    Deque<SedentaryEvent> sedentaryEvents;
+    SharedPreferences preferences;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -52,6 +62,10 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        preferences = getSharedPreferences(Keys.SEDENTARY_EVENTS_FILE, MODE_PRIVATE);
+
+        getSedentaryEvents();
 
         locationManager = getSystemService(LocationManager.class);
         locationListener = new LocationListener() {
@@ -103,7 +117,39 @@ public class TracingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        saveSedentaryEvents();
         locationManager.removeUpdates(locationListener);
+    }
+
+    private void getSedentaryEvents() {
+        String json = preferences.getString(Keys.SEDENTARY_EVENTS, "");
+        // no previously saved list, so create it
+        if (json.isEmpty()) {
+            sedentaryEvents = new ArrayDeque<>();
+        } else {
+            // restore list
+            Type type = new TypeToken<ArrayDeque<SedentaryEvent>>() {
+            }.getType();
+            sedentaryEvents = new Gson().fromJson(json, type);
+            removeExpiredSedentaryEvents();
+        }
+    }
+
+    private void saveSedentaryEvents() {
+        preferences.edit()
+                .putString(Keys.SEDENTARY_EVENTS, new Gson().toJson(sedentaryEvents))
+                .apply();
+    }
+
+    private void removeExpiredSedentaryEvents() {
+        long TWO_WEEKS_IN_MILLIS = 1209600000;
+        Date twoWeeks = new Date((new Date()).getTime() - TWO_WEEKS_IN_MILLIS);
+        for (SedentaryEvent se : sedentaryEvents) {
+            if (se.getDate().before(twoWeeks)) {
+                Log.d(TAG, "removing" + se.toString());
+                sedentaryEvents.remove(se);
+            }
+        }
     }
 
     private void tracePointDetected(Location location) {
@@ -115,6 +161,7 @@ public class TracingService extends Service {
                 previousLocation.getTime(),
                 location.getTime()
         );
+        sedentaryEvents.add(se);
         postSedentaryEvent(se);
     }
 

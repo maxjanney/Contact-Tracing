@@ -2,7 +2,7 @@ package edu.temple.contacttracer.Tracing;
 
 import android.location.Location;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 public class SedentaryEvent {
 
@@ -11,7 +11,7 @@ public class SedentaryEvent {
     private final double longitude;
     private final long sedentary_begin;
     private final long sedentary_end;
-    private LocalDate date;
+    private final Date date;
     private Location location;
 
     public SedentaryEvent(String uuid, double latitude, double longitude,
@@ -21,6 +21,7 @@ public class SedentaryEvent {
         this.longitude = longitude;
         this.sedentary_begin = sedentary_begin;
         this.sedentary_end = sedentary_end;
+        this.date = new Date();
     }
 
     public String getUUID() {
@@ -43,7 +44,7 @@ public class SedentaryEvent {
         return sedentary_end;
     }
 
-    public LocalDate getDate() {
+    public Date getDate() {
         return date;
     }
 
@@ -52,10 +53,6 @@ public class SedentaryEvent {
             setLocation();
         }
         return location;
-    }
-
-    public void setDate() {
-        date = LocalDate.now();
     }
 
     private void setLocation() {
@@ -72,7 +69,7 @@ public class SedentaryEvent {
                 ", longitude=" + longitude +
                 ", sedentary_begin=" + sedentary_begin +
                 ", sedentary_end=" + sedentary_end +
-                ", location=" + location +
+                ", date=" + date +
                 '}';
     }
 }
