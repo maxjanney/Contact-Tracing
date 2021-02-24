@@ -31,8 +31,15 @@ public class TracingMessengerService extends FirebaseMessagingService {
     private static final String TRACKING = "/topics/TRACKING";
     private static final double TRACING_DISTANCE = 1.83;    // 1.83 meters ~ 6 feet
 
-    Deque<SedentaryEvent> reports = getReports();
-    SharedPreferences preferences = getSharedPreferences(Keys.REPORTS_FILE, MODE_PRIVATE);
+    Deque<SedentaryEvent> reports;
+    SharedPreferences preferences;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        preferences = getSharedPreferences(Keys.REPORTS_FILE, MODE_PRIVATE);
+        getReports();
+    }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -63,30 +70,27 @@ public class TracingMessengerService extends FirebaseMessagingService {
         }
     }
 
-    private Deque<SedentaryEvent> getReports() {
-        Log.d(TAG, "Hello there");
+    private void getReports() {
         String json = preferences.getString(Keys.REPORTS, "");
-        ArrayDeque<SedentaryEvent> temp;
         // no previously saved list, so create it
         if (json.isEmpty()) {
-            temp = new ArrayDeque<>();
+            reports = new ArrayDeque<>();
         } else {
             // restore list
             Type type = new TypeToken<ArrayDeque<SedentaryEvent>>() {
             }.getType();
-            temp = new Gson().fromJson(json, type);
-            removeExpiredReports(temp);
+            reports = new Gson().fromJson(json, type);
+            removeExpiredReports();
         }
-        return temp;
     }
 
-    private void removeExpiredReports(ArrayDeque<SedentaryEvent> temp) {
+    private void removeExpiredReports() {
         long TWO_WEEKS_IN_MILLIS = 1209600000;
         Date twoWeeks = new Date((new Date()).getTime() - TWO_WEEKS_IN_MILLIS);
-        for (SedentaryEvent se : temp) {
+        for (SedentaryEvent se : reports) {
             if (se.getDate().before(twoWeeks)) {
                 Log.d(TAG, "removing" + se.toString());
-                temp.remove(se);
+                reports.remove(se);
             }
         }
     }
