@@ -5,4 +5,5 @@
     <string name="stop_button_text">Stop Service</string>
     <string name="notification_title">Tracing Service</string>
     <string name="notification_text">Tracking location now</string>
+    <string name="report_button_text">Report</string>
 </resources>

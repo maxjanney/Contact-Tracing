@@ -23,4 +23,13 @@
         android:layout_marginEnd="15dp"
         android:layout_gravity="end|center"/>
 
+    <Button
+        android:id="@+id/report_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="256dp"
+        android:backgroundTint="@android:color/background_dark"
+        android:text="@string/report_button_text"/>
+
 </FrameLayout>

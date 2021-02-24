@@ -1,10 +1,12 @@
 package edu.temple.contacttracer;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.DatePicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,6 +22,9 @@ import edu.temple.contacttracer.Tracing.TracingID;
 import edu.temple.contacttracer.Tracing.TracingIDList;
 
 import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
@@ -80,6 +85,18 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
             tracingIDList.generateID(today, this);
         }
         Log.d(TAG, tracingIDList.getIds().toString());
+    }
+
+    @Override
+    public void report() {
+        DatePickerDialog d = new DatePickerDialog(this);
+        d.setOnDateSetListener(new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
+                Log.d(TAG, String.valueOf(year) + " " + String.valueOf(month) + " " + String.valueOf(dayOfMonth));
+            }
+        });
+        d.show();
     }
 
     private void subscribeToTopic(String topic) {

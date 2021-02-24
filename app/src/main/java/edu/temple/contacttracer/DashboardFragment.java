@@ -30,11 +30,13 @@ public class DashboardFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
         root.findViewById(R.id.start_button).setOnClickListener(v -> dashboardActivity.start());
         root.findViewById(R.id.stop_button).setOnClickListener(v -> dashboardActivity.stop());
+        root.findViewById(R.id.report_button).setOnClickListener(v -> dashboardActivity.report());
         return root;
     }
 
     interface Dashboard {
         void start();
         void stop();
+        void report();
     }
 }
