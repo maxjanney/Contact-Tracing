@@ -1,7 +1,7 @@
 package edu.temple.contacttracer;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -14,14 +14,16 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.time.LocalDate;
+import java.lang.reflect.Type;
+import java.util.ArrayDeque;
+import java.util.Date;
+import java.util.Deque;
 
+import edu.temple.contacttracer.Tracing.SedentaryEvent;
 import edu.temple.contacttracer.Tracing.TracingID;
 import edu.temple.contacttracer.Tracing.TracingIDList;
-import edu.temple.contacttracer.Tracing.SedentaryEvent;
 
 public class TracingMessengerService extends FirebaseMessagingService {
 
@@ -29,31 +31,70 @@ public class TracingMessengerService extends FirebaseMessagingService {
     private static final String TRACKING = "/topics/TRACKING";
     private static final double TRACING_DISTANCE = 1.83;    // 1.83 meters ~ 6 feet
 
+    Deque<SedentaryEvent> reports = getReports();
+    SharedPreferences preferences = getSharedPreferences(Keys.REPORTS_FILE, MODE_PRIVATE);
+
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         if (remoteMessage.getFrom().equals(TRACKING)) {
-            handleSedentaryEvent(remoteMessage);
+            handleReport(remoteMessage);
         }
     }
 
-    private void handleSedentaryEvent(RemoteMessage remoteMessage) {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        saveReports();
+    }
+
+    private void handleReport(RemoteMessage remoteMessage) {
         JsonObject jsonObj = JsonParser.parseString(remoteMessage.getData().get("payload")).getAsJsonObject();
         SedentaryEvent se = new Gson().fromJson(jsonObj, SedentaryEvent.class);
-        Log.d(TAG, se.toString());
+        se.setDate();
         // ignore our own UUIDs
         if (isExternalID(se.getUUID())) {
             Location currLocation = currentLocation();
             Location sedentaryLocation = se.getLocation();
             // ignore sedentary event if it was not within range
             if (currLocation != null && currLocation.distanceTo(sedentaryLocation) <= TRACING_DISTANCE) {
-                saveSedentaryEvent(se);
+                reports.add(se);
             }
         }
     }
 
-    private void saveSedentaryEvent(SedentaryEvent se) {
-        Log.d(TAG, "Saving sedentary event");
+    private Deque<SedentaryEvent> getReports() {
+        Log.d(TAG, "Hello there");
+        String json = preferences.getString(Keys.REPORTS, "");
+        ArrayDeque<SedentaryEvent> temp;
+        // no previously saved list, so create it
+        if (json.isEmpty()) {
+            temp = new ArrayDeque<>();
+        } else {
+            // restore list
+            Type type = new TypeToken<ArrayDeque<SedentaryEvent>>() {
+            }.getType();
+            temp = new Gson().fromJson(json, type);
+            removeExpiredReports(temp);
+        }
+        return temp;
+    }
+
+    private void removeExpiredReports(ArrayDeque<SedentaryEvent> temp) {
+        long TWO_WEEKS_IN_MILLIS = 1209600000;
+        Date twoWeeks = new Date((new Date()).getTime() - TWO_WEEKS_IN_MILLIS);
+        for (SedentaryEvent se : temp) {
+            if (se.getDate().before(twoWeeks)) {
+                Log.d(TAG, "removing" + se.toString());
+                temp.remove(se);
+            }
+        }
+    }
+
+    private void saveReports() {
+        preferences.edit()
+                .putString(Keys.REPORTS, new Gson().toJson(reports))
+                .apply();
     }
 
     private boolean isExternalID(String uuid) {
@@ -75,5 +116,4 @@ public class TracingMessengerService extends FirebaseMessagingService {
         }
         return location;
     }
-
 }

@@ -44,7 +44,7 @@ public class TracingService extends Service {
     static final String CHANNEL_NAME = "tracing_service_channel";
     static final String TAG = "TracingService";
 
-    static final long SEDENTARY_TIME = 10 * 1000;   // 60 seconds
+    static final long SEDENTARY_TIME = 60 * 1000;   // 60 seconds
     static final long UPDATE_DISTANCE = 10;         // location updates every 10 meters
 
     LocationManager locationManager;
