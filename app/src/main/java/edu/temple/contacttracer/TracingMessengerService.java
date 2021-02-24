@@ -29,6 +29,7 @@ public class TracingMessengerService extends FirebaseMessagingService {
 
     private static final String TAG = "TracingMessengerService";
     private static final String TRACKING = "/topics/TRACKING";
+    private static final String TRACING = "/topics/TRACING";
     private static final double TRACING_DISTANCE = 1.83;    // 1.83 meters ~ 6 feet
 
     Deque<SedentaryEvent> reports = getReports();
@@ -37,8 +38,11 @@ public class TracingMessengerService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        if (remoteMessage.getFrom().equals(TRACKING)) {
+        String from = remoteMessage.getFrom();
+        if (from.equals(TRACKING)) {
             handleReport(remoteMessage);
+        } else if (from.equals(TRACING)) {
+            // handle tracing message
         }
     }
 

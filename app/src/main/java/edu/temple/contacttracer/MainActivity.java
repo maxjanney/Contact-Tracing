@@ -23,7 +23,8 @@ import java.time.LocalDate;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
-    static final String TRACING_TOPIC = "TRACKING";
+    static final String TRACKING_TOPIC = "TRACKING";
+    static final String TRACING_TOPIC = "TRACING";
     static final String TAG = "MainActivity";
 
     TracingIDList tracingIDList;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         tracingIntent = new Intent(this, TracingService.class);
 
         generateDailyID();
+        subscribeToTopic(TRACKING_TOPIC);
         subscribeToTopic(TRACING_TOPIC);
     }
 
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        Log.d(TAG, task.isSuccessful() ? "success" : "fail");
+                        Log.d(TAG, topic + (task.isSuccessful() ? "success" : "fail"));
                     }
                 });
     }
