@@ -8,48 +8,51 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.time.LocalDate;
 import java.util.ArrayDeque;
 
-public class TracingIDList {
+public class TracingIdContainer {
+
     private static final String LIST_FILE = "list";
     private static final int MAX_IDS = 14;
-   
-    private static TracingIDList instance;
-    private ArrayDeque<TracingID> ids;
 
-    public static TracingIDList getInstance(Context context) {
+    private static TracingIdContainer instance;
+    private ArrayDeque<TracingId> ids;
+    private static Context ctx;
+
+    public static TracingIdContainer getInstance(Context context) {
         if (instance == null) {
-            instance = new TracingIDList(context);
+            context = context.getApplicationContext();
+            instance = new TracingIdContainer(context);
         }
         return instance;
     }
 
-    public void generateID(LocalDate date, Context context) {
-        ids.addFirst(new TracingID(date));
+    public void generateID() {
+        ids.addFirst(new TracingId());
         if (ids.size() > MAX_IDS) {
             ids.pollLast();
         }
-        saveIDs(context);
+        saveIDs();
     }
 
-    public ArrayDeque<TracingID> getIds() {
+    public ArrayDeque<TracingId> getIds() {
         return ids;
     }
 
-    public TracingID getCurrentID() {
+    public TracingId getCurrentID() {
         return ids.peekFirst();
     }
 
     @SuppressWarnings("unchecked")
-    private TracingIDList(Context context) {
+    private TracingIdContainer(Context context) {
+        ctx = context;
         FileInputStream fis;
         ObjectInput ois;
         try {
             // try and restore list from storage
             fis = context.openFileInput(LIST_FILE);
             ois = new ObjectInputStream(fis);
-            ids = (ArrayDeque<TracingID>) ois.readObject();
+            ids = (ArrayDeque<TracingId>) ois.readObject();
             ois.close();
             fis.close();
         } catch (Exception ignored) {
@@ -58,11 +61,11 @@ public class TracingIDList {
         }
     }
 
-    private void saveIDs(Context context) {
+    private void saveIDs() {
         FileOutputStream fos;
         ObjectOutput oos;
         try {
-            fos = context.openFileOutput(LIST_FILE, Context.MODE_PRIVATE);
+            fos = ctx.openFileOutput(LIST_FILE, Context.MODE_PRIVATE);
             oos = new ObjectOutputStream(fos);
             oos.writeObject(ids);
             oos.close();

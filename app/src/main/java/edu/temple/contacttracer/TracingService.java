@@ -7,7 +7,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -25,34 +24,30 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.ArrayDeque;
-import java.util.Date;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
 import edu.temple.contacttracer.Tracing.SedentaryEvent;
-import edu.temple.contacttracer.Tracing.TracingIDList;
+import edu.temple.contacttracer.Tracing.SedentaryEventContainer;
+import edu.temple.contacttracer.Tracing.TracingIdContainer;
 
 public class TracingService extends Service {
 
-    static final String CHANNEL_ID = "tracing_service_channel_id";
-    static final String CHANNEL_NAME = "tracing_service_channel";
-    static final String TAG = "TracingService";
+    private static final String CHANNEL_ID = "tracing_service_channel_id";
+    private static final String CHANNEL_NAME = "Tracing_service_channel";
+    private static final String TAG = "TracingService";
+    private static final String URL = "https://kamorris.com/lab/ct_tracking.php";
 
-    static final long SEDENTARY_TIME = 60 * 1000;   // 60 seconds
-    static final long UPDATE_DISTANCE = 10;         // location updates every 10 meters
+    private static final long SEDENTARY_TIME = 60 * 1000;   // 60 seconds
+    private static final long UPDATE_DISTANCE = 10;         // location updates every 10 meters
 
-    LocationManager locationManager;
-    LocationListener locationListener;
-    Location previousLocation;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+    private Location previousLocation;
 
-    Deque<SedentaryEvent> sedentaryEvents;
-    SharedPreferences preferences;
+    private TracingIdContainer tracingIdContainer;
+    SedentaryEventContainer container;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -62,10 +57,8 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        preferences = getSharedPreferences(Keys.SEDENTARY_EVENTS_FILE, MODE_PRIVATE);
-
-        getSedentaryEvents();
+        tracingIdContainer = TracingIdContainer.getInstance(this);
+        container = SedentaryEventContainer.getSedentaryEventContainer(this, Keys.SEDENTARY_EVENTS_FILE);
 
         locationManager = getSystemService(LocationManager.class);
         locationListener = new LocationListener() {
@@ -117,58 +110,24 @@ public class TracingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        saveSedentaryEvents();
         locationManager.removeUpdates(locationListener);
     }
 
-    private void getSedentaryEvents() {
-        String json = preferences.getString(Keys.SEDENTARY_EVENTS, "");
-        // no previously saved list, so create it
-        if (json.isEmpty()) {
-            sedentaryEvents = new ArrayDeque<>();
-        } else {
-            // restore list
-            Type type = new TypeToken<ArrayDeque<SedentaryEvent>>() {
-            }.getType();
-            sedentaryEvents = new Gson().fromJson(json, type);
-            removeExpiredSedentaryEvents();
-        }
-    }
-
-    private void saveSedentaryEvents() {
-        preferences.edit()
-                .putString(Keys.SEDENTARY_EVENTS, new Gson().toJson(sedentaryEvents))
-                .apply();
-    }
-
-    private void removeExpiredSedentaryEvents() {
-        long TWO_WEEKS_IN_MILLIS = 1209600000;
-        Date twoWeeks = new Date((new Date()).getTime() - TWO_WEEKS_IN_MILLIS);
-        for (SedentaryEvent se : sedentaryEvents) {
-            if (se.getDate().before(twoWeeks)) {
-                Log.d(TAG, "removing" + se.toString());
-                sedentaryEvents.remove(se);
-            }
-        }
-    }
-
     private void tracePointDetected(Location location) {
-        TracingIDList ids = TracingIDList.getInstance(this);
         SedentaryEvent se = new SedentaryEvent(
-                ids.getCurrentID().getUUID().toString(),
+                tracingIdContainer.getCurrentID().getUUID().toString(),
                 previousLocation.getLatitude(),
                 previousLocation.getLongitude(),
                 previousLocation.getTime(),
                 location.getTime()
         );
-        sedentaryEvents.add(se);
+        container.addSedentaryEvent(se);
         postSedentaryEvent(se);
     }
 
     private void postSedentaryEvent(SedentaryEvent se) {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
-        String url = "https://kamorris.com/lab/ct_tracking.php";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, response);

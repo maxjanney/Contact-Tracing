@@ -4,15 +4,13 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class TracingID implements Serializable {
-    // date id was generated
-    private final LocalDate date;
+public class TracingId implements Serializable {
 
-    // actual id
+    private final LocalDate date;
     private final UUID id;
 
-    public TracingID(LocalDate date) {
-        this.date = date;
+    public TracingId() {
+        this.date = LocalDate.now();
         this.id = UUID.randomUUID();
     }
 

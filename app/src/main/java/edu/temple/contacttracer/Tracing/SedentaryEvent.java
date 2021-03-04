@@ -2,9 +2,10 @@ package edu.temple.contacttracer.Tracing;
 
 import android.location.Location;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class SedentaryEvent {
+public class SedentaryEvent implements Serializable {
 
     private final String uuid;
     private final double latitude;
@@ -50,19 +51,15 @@ public class SedentaryEvent {
 
     public Location getLocation() {
         if (location == null) {
-            setLocation();
+            location = new Location("");
+            location.setLatitude(latitude);
+            location.setLongitude(longitude);
         }
         return location;
     }
 
     public void setDate() {
         this.date = new Date();
-    }
-
-    private void setLocation() {
-        location = new Location("");
-        location.setLatitude(latitude);
-        location.setLongitude(longitude);
     }
 
     @Override

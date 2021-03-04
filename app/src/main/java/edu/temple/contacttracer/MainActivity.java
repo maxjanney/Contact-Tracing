@@ -16,15 +16,11 @@ import androidx.fragment.app.FragmentManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingService;
 
-import edu.temple.contacttracer.Tracing.TracingID;
-import edu.temple.contacttracer.Tracing.TracingIDList;
+import edu.temple.contacttracer.Tracing.TracingId;
+import edu.temple.contacttracer.Tracing.TracingIdContainer;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
@@ -32,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
     static final String TRACING_TOPIC = "TRACING";
     static final String TAG = "MainActivity";
 
-    TracingIDList tracingIDList;
+    TracingIdContainer tracingIDList;
     Intent tracingIntent;
 
     @Override
@@ -51,10 +47,11 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
                     .commit();
         }
 
-        tracingIDList = TracingIDList.getInstance(this);
+        tracingIDList = TracingIdContainer.getInstance(this);
         tracingIntent = new Intent(this, TracingService.class);
 
         generateDailyID();
+
         subscribeToTopic(TRACKING_TOPIC);
         subscribeToTopic(TRACING_TOPIC);
     }
@@ -79,10 +76,10 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
 
     private void generateDailyID() {
         LocalDate today = LocalDate.now();
-        TracingID currentID = tracingIDList.getCurrentID();
+        TracingId currentID = tracingIDList.getCurrentID();
         // no previous ID or current ID is expired, so generate a new one
         if (currentID == null || today.isAfter(currentID.getDate())) {
-            tracingIDList.generateID(today, this);
+            tracingIDList.generateID();
         }
         Log.d(TAG, tracingIDList.getIds().toString());
     }
