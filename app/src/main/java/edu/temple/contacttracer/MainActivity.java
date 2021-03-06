@@ -13,14 +13,26 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import edu.temple.contacttracer.Tracing.TracingId;
-import edu.temple.contacttracer.Tracing.TracingIdContainer;
+import edu.temple.contacttracer.Tracing.SedentaryEvent;
+import edu.temple.contacttracer.Tracing.SedentaryEventContainer;
+import edu.temple.contacttracer.Tracing.TracingID;
+import edu.temple.contacttracer.Tracing.TracingIDContainer;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
@@ -28,7 +40,8 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
     static final String TRACING_TOPIC = "TRACING";
     static final String TAG = "MainActivity";
 
-    TracingIdContainer tracingIDList;
+    RequestQueue requestQueue;
+    TracingIDContainer tracingIDList;
     Intent tracingIntent;
 
     @Override
@@ -47,8 +60,9 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
                     .commit();
         }
 
-        tracingIDList = TracingIdContainer.getInstance(this);
+        tracingIDList = TracingIDContainer.getInstance(this);
         tracingIntent = new Intent(this, TracingService.class);
+        requestQueue = Volley.newRequestQueue(this);
 
         generateDailyID();
 
@@ -76,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
 
     private void generateDailyID() {
         LocalDate today = LocalDate.now();
-        TracingId currentID = tracingIDList.getCurrentID();
+        TracingID currentID = tracingIDList.getCurrentID();
         // no previous ID or current ID is expired, so generate a new one
         if (currentID == null || today.isAfter(currentID.getDate())) {
             tracingIDList.generateID();
@@ -90,7 +104,38 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         d.setOnDateSetListener(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
-                Log.d(TAG, String.valueOf(year) + " " + String.valueOf(month) + " " + String.valueOf(dayOfMonth));
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.YEAR, year);
+                calendar.set(Calendar.MONTH, month);
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                long date = calendar.getTimeInMillis();
+
+                ArrayList<String> uuids = new ArrayList<>();
+                SedentaryEventContainer container = SedentaryEventContainer.getSedentaryEventContainer(MainActivity.this, Constants.SEDENTARY_EVENTS_FILE);
+                for (SedentaryEvent se : container.getSedentaryEvents()) {
+                    uuids.add(se.getUUID());
+                }
+
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, Constants.TRACING_URL, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d(TAG, response);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d(TAG, error.toString());
+                    }
+                }) {
+                    @Override
+                    protected Map<String, String> getParams() {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("date", String.valueOf(date));
+                        params.put("uuids", uuids.toString());
+                        return params;
+                    }
+                };
+                requestQueue.add(stringRequest);
             }
         });
         d.show();

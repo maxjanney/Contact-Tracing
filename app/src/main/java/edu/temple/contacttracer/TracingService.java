@@ -30,14 +30,13 @@ import java.util.Map;
 
 import edu.temple.contacttracer.Tracing.SedentaryEvent;
 import edu.temple.contacttracer.Tracing.SedentaryEventContainer;
-import edu.temple.contacttracer.Tracing.TracingIdContainer;
+import edu.temple.contacttracer.Tracing.TracingIDContainer;
 
 public class TracingService extends Service {
 
     private static final String CHANNEL_ID = "tracing_service_channel_id";
     private static final String CHANNEL_NAME = "Tracing_service_channel";
     private static final String TAG = "TracingService";
-    private static final String URL = "https://kamorris.com/lab/ct_tracking.php";
 
     private static final long SEDENTARY_TIME = 60 * 1000;   // 60 seconds
     private static final long UPDATE_DISTANCE = 10;         // location updates every 10 meters
@@ -46,8 +45,9 @@ public class TracingService extends Service {
     private LocationListener locationListener;
     private Location previousLocation;
 
-    private TracingIdContainer tracingIdContainer;
-    SedentaryEventContainer container;
+    private TracingIDContainer tracingIdContainer;
+    private SedentaryEventContainer container;
+    private RequestQueue requestQueue;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -57,8 +57,10 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        tracingIdContainer = TracingIdContainer.getInstance(this);
-        container = SedentaryEventContainer.getSedentaryEventContainer(this, Keys.SEDENTARY_EVENTS_FILE);
+
+        tracingIdContainer = TracingIDContainer.getInstance(this);
+        container = SedentaryEventContainer.getSedentaryEventContainer(this, Constants.SEDENTARY_EVENTS_FILE);
+        requestQueue = Volley.newRequestQueue(this);
 
         locationManager = getSystemService(LocationManager.class);
         locationListener = new LocationListener() {
@@ -126,8 +128,7 @@ public class TracingService extends Service {
     }
 
     private void postSedentaryEvent(SedentaryEvent se) {
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constants.TRACKING_URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, response);

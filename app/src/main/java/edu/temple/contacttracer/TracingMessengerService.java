@@ -13,7 +13,7 @@ import com.google.gson.JsonParser;
 
 import edu.temple.contacttracer.Tracing.SedentaryEvent;
 import edu.temple.contacttracer.Tracing.SedentaryEventContainer;
-import edu.temple.contacttracer.Tracing.TracingIdContainer;
+import edu.temple.contacttracer.Tracing.TracingIDContainer;
 
 public class TracingMessengerService extends FirebaseMessagingService {
 
@@ -23,13 +23,13 @@ public class TracingMessengerService extends FirebaseMessagingService {
     private static final double TRACING_DISTANCE = 1.83;    // 1.83 meters ~ 6 feet
 
     private SedentaryEventContainer container;
-    private TracingIdContainer tracingIds;
+    private TracingIDContainer tracingIds;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        tracingIds = TracingIdContainer.getInstance(this);
-        container = SedentaryEventContainer.getSedentaryEventContainer(this, Keys.REPORTS_FILE);
+        tracingIds = TracingIDContainer.getInstance(this);
+        container = SedentaryEventContainer.getSedentaryEventContainer(this, Constants.REPORTS_FILE);
     }
 
     @Override
@@ -53,8 +53,7 @@ public class TracingMessengerService extends FirebaseMessagingService {
         SedentaryEvent recvSedentaryEvent = new Gson().fromJson(jsonObj, SedentaryEvent.class);
         recvSedentaryEvent.setDate();
         SedentaryEvent mySedentaryEvent = container.getLatestSedentaryEvent();
-        // ignore our own UUIDs
-        Log.d(TAG, recvSedentaryEvent.toString());
+        // ignore our own UUID
         if (mySedentaryEvent != null && isExternalID(recvSedentaryEvent.getUUID())) {
             Location recvLocation = recvSedentaryEvent.getLocation();
             Location myLocation = mySedentaryEvent.getLocation();

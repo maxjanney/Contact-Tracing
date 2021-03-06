@@ -10,41 +10,41 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.ArrayDeque;
 
-public class TracingIdContainer {
+public class TracingIDContainer {
 
     private static final String LIST_FILE = "list";
     private static final int MAX_IDS = 14;
 
-    private static TracingIdContainer instance;
-    private ArrayDeque<TracingId> ids;
+    private static TracingIDContainer instance;
+    private ArrayDeque<TracingID> ids;
     private static Context ctx;
 
-    public static TracingIdContainer getInstance(Context context) {
+    public static TracingIDContainer getInstance(Context context) {
         if (instance == null) {
             context = context.getApplicationContext();
-            instance = new TracingIdContainer(context);
+            instance = new TracingIDContainer(context);
         }
         return instance;
     }
 
     public void generateID() {
-        ids.addFirst(new TracingId());
+        ids.addFirst(new TracingID());
         if (ids.size() > MAX_IDS) {
             ids.pollLast();
         }
         saveIDs();
     }
 
-    public ArrayDeque<TracingId> getIds() {
+    public ArrayDeque<TracingID> getIds() {
         return ids;
     }
 
-    public TracingId getCurrentID() {
+    public TracingID getCurrentID() {
         return ids.peekFirst();
     }
 
     @SuppressWarnings("unchecked")
-    private TracingIdContainer(Context context) {
+    private TracingIDContainer(Context context) {
         ctx = context;
         FileInputStream fis;
         ObjectInput ois;
@@ -52,7 +52,7 @@ public class TracingIdContainer {
             // try and restore list from storage
             fis = context.openFileInput(LIST_FILE);
             ois = new ObjectInputStream(fis);
-            ids = (ArrayDeque<TracingId>) ois.readObject();
+            ids = (ArrayDeque<TracingID>) ois.readObject();
             ois.close();
             fis.close();
         } catch (Exception ignored) {
