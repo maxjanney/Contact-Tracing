@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.DatePicker;
@@ -19,20 +20,22 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.temple.contacttracer.Tracing.SedentaryEvent;
 import edu.temple.contacttracer.Tracing.SedentaryEventContainer;
 import edu.temple.contacttracer.Tracing.TracingID;
 import edu.temple.contacttracer.Tracing.TracingIDContainer;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements DashboardFragment.Dashboard {
 
@@ -40,9 +43,11 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
     static final String TRACING_TOPIC = "TRACING";
     static final String TAG = "MainActivity";
 
+    FragmentManager fm;
     RequestQueue requestQueue;
     TracingIDContainer tracingIDList;
     Intent tracingIntent;
+    MyApplication myApp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 123);
         }
 
-        FragmentManager fm = getSupportFragmentManager();
+        fm = getSupportFragmentManager();
         if (!(fm.findFragmentById(R.id.dashboard_fragment) instanceof DashboardFragment)) {
             fm.beginTransaction()
                     .add(R.id.dashboard_fragment, new DashboardFragment())
@@ -63,11 +68,41 @@ public class MainActivity extends AppCompatActivity implements DashboardFragment
         tracingIDList = TracingIDContainer.getInstance(this);
         tracingIntent = new Intent(this, TracingService.class);
         requestQueue = Volley.newRequestQueue(this);
+        myApp = (MyApplication) getApplicationContext();
 
         generateDailyID();
 
         subscribeToTopic(TRACKING_TOPIC);
         subscribeToTopic(TRACING_TOPIC);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent launchTraceFrag = getIntent();
+        if (launchTraceFrag != null) {
+            Bundle extra = launchTraceFrag.getExtras();
+            if (extra != null) {
+                long date = extra.getLong("date");
+                Location l = extra.getParcelable("location");
+                LatLng latLng = new LatLng(l.getLatitude(), l.getLongitude());
+                fm.beginTransaction()
+                        .replace(R.id.dashboard_fragment, TraceFragment.newInstance(latLng, new Date(date)))
+                        .commit();
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myApp.setForeground(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        myApp.setForeground(false);
     }
 
     @Override
