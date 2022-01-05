@@ -1,18 +1,16 @@
-package com.example.contacttracingapp.Tracing;
+package edu.temple.contacttracer.Tracing;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class TracingID implements Serializable {
-    // date id was generated
-    private final LocalDate date;
 
-    // actual id
+    private final LocalDate date;
     private final UUID id;
 
-    public TracingID(LocalDate date) {
-        this.date = date;
+    public TracingID() {
+        this.date = LocalDate.now();
         this.id = UUID.randomUUID();
     }
 
@@ -20,7 +18,7 @@ public class TracingID implements Serializable {
         return date;
     }
 
-    public UUID getId() {
+    public UUID getUUID() {
         return id;
     }
 
